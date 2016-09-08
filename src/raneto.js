@@ -142,11 +142,13 @@ class Raneto {
       content     = this.processVars(content);
       const html    = marked(content);
 
+      const plainText = _s.stripTags(_s.unescapeHTML(html));
       return {
-        slug    : slug,
-        title   : meta.title ? meta.title : this.slugToTitle(slug),
-        body    : html,
-        excerpt : _s.prune(_s.stripTags(_s.unescapeHTML(html)), (this.config.excerpt_length || 400))
+        slug      : slug,
+        title     : meta.title ? meta.title : this.slugToTitle(slug),
+        body      : html,
+        plainText : plainText,
+        excerpt   : _s.prune(plainText, this.config.excerpt_length)
       };
     } catch (e) {
       if (this.config.debug) { console.log(e); }
@@ -284,7 +286,15 @@ class Raneto {
 
     results.forEach(result => {
       const page = this.getPage(this.config.content_dir + result.ref);
-      page.excerpt = page.excerpt.replace(new RegExp('('+ query +')', 'gim'), '<span class="search-query">$1</span>');
+      const startPoint = page.plainText.indexOf(query);
+      const padding = this.config.excerpt_length / 2;
+      const beginning = Math.max(startPoint - padding, 0);
+      const end = Math.min(startPoint + query.length + padding, page.plainText.length);
+      const leadingElipsis = beginning === 0 ? '' : '...';
+      const trailingElipsis = end === page.plainText.length ? '' : '...';
+      const baseExcerpt = leadingElipsis + page.plainText.substring(beginning, end) + trailingElipsis;
+
+      page.excerpt = baseExcerpt.replace(new RegExp('('+ query +')', 'gim'), '<span class="search-query">$1</span>');
       searchResults.push(page);
     });
 
