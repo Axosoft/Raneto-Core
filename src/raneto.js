@@ -289,12 +289,12 @@ class Raneto {
       const startPoint = page.plainText.indexOf(query);
       const padding = this.config.excerpt_length / 2;
       const beginning = Math.max(startPoint - padding, 0);
-      const end = Math.min(startPoint + query.length + padding, page.plainText.length);
+      const end = Math.min(startPoint, this.config.excerpt_length, page.plainText.length);
       const leadingElipsis = beginning === 0 ? '' : '...';
       const trailingElipsis = end === page.plainText.length ? '' : '...';
       const baseExcerpt = leadingElipsis + page.plainText.substring(beginning, end) + trailingElipsis;
 
-      page.excerpt = baseExcerpt.replace(new RegExp('('+ query +')', 'gim'), '<span class="search-query">$1</span>');
+      page.excerpt = _s.unescapeHTML(baseExcerpt.replace(new RegExp('('+ query +')', 'gim'), '<span class="search-query">$1</span>'));
       searchResults.push(page);
     });
 
